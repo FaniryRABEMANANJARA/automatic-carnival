@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import VuetifyProvider from '@/components/VuetifyProvider'
 import { CurrencyProvider } from '@/contexts/CurrencyContext'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <head>
+        <link rel="icon" href="/favicon.ico" />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
@@ -30,9 +32,11 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <VuetifyProvider>
-          <CurrencyProvider>
-            {children}
-          </CurrencyProvider>
+          <AuthProvider>
+            <CurrencyProvider>
+              {children}
+            </CurrencyProvider>
+          </AuthProvider>
         </VuetifyProvider>
       </body>
     </html>

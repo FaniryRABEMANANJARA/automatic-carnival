@@ -52,6 +52,21 @@ function getPool(): Pool {
 export async function initDatabase() {
   const pool = getPool()
   try {
+    // Créer la table users
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        name VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+    
+    // Créer un index sur l'email pour améliorer les performances
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`)
+    
     // Créer la table categories
     await pool.query(`
       CREATE TABLE IF NOT EXISTS categories (
