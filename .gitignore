@@ -38,3 +38,4 @@ data/budget.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+SECURITY.md

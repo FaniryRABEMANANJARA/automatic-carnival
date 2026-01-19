@@ -2,11 +2,23 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+// JWT_SECRET doit être défini dans les variables d'environnement
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET || JWT_SECRET === 'your-secret-key-change-in-production') {
+  console.error('⚠️  WARNING: JWT_SECRET n\'est pas défini ou utilise la valeur par défaut. C\'est un risque de sécurité!')
+}
+
+// TypeScript assertion : JWT_SECRET est garanti d'être défini pour la vérification
+// En production, cette valeur DOIT être définie
+const JWT_SECRET_FINAL: string = JWT_SECRET || 'fallback-secret-for-development-only'
 
 function verifyToken(token: string): { id: number; email: string } | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string }
+    // Si JWT_SECRET n'est pas défini, retourner null pour éviter les erreurs
+    if (!JWT_SECRET || JWT_SECRET === 'your-secret-key-change-in-production') {
+      return null
+    }
+    const decoded = jwt.verify(token, JWT_SECRET_FINAL) as { id: number; email: string }
     return decoded
   } catch (error) {
     return null

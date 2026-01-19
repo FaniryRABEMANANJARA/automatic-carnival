@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getTransactions, createTransaction, initDatabase } from '@/lib/db-postgres-pg'
+import { requireAuth } from '@/lib/api-auth'
 
 // Initialiser la base de données au démarrage
 let dbInitialized = false
@@ -10,8 +11,14 @@ async function ensureDbInitialized() {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Vérifier l'authentification
+    const authResult = await requireAuth(request)
+    if (!authResult.authenticated) {
+      return authResult.response
+    }
+
     await ensureDbInitialized()
     const transactions = await getTransactions()
     
@@ -33,27 +40,35 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Vérifier l'authentification
+    const authResult = await requireAuth(request)
+    if (!authResult.authenticated) {
+      return authResult.response
+    }
+
     await ensureDbInitialized()
     const body = await request.json()
-    const { type, category, description, amount, date, currency, income_source } = body
+    
+    // Validation et sanitization des entrées
+    const { validateTransactionInput } = await import('@/lib/security')
+    const validation = validateTransactionInput({
+      type: body.type,
+      category: body.category,
+      description: body.description,
+      amount: body.amount,
+      currency: body.currency || 'MGA',
+      date: body.date,
+      income_source: body.income_source,
+    })
 
-    if (!type || !category || !amount || !date) {
+    if (!validation.valid) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Données invalides', details: validation.errors },
         { status: 400 }
       )
     }
 
-    const transactionCurrency = currency || 'MGA'
-    const newTransaction = await createTransaction({
-      type,
-      category,
-      description: description || '',
-      amount: parseFloat(amount),
-      currency: transactionCurrency,
-      date,
-      income_source: type === 'expense' && income_source ? income_source : undefined,
-    })
+    const newTransaction = await createTransaction(validation.sanitized!)
     
     return NextResponse.json({ id: newTransaction.id }, { status: 201 })
   } catch (error) {

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { updateTransaction, deleteTransaction, initDatabase } from '@/lib/db-postgres-pg'
+import { requireAuth } from '@/lib/api-auth'
+import { isValidId, validateTransactionInput } from '@/lib/security'
 
 // Initialiser la base de données au démarrage
 let dbInitialized = false
@@ -15,15 +17,46 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Vérifier l'authentification
+    const authResult = await requireAuth(request)
+    if (!authResult.authenticated) {
+      return authResult.response
+    }
+
     await ensureDbInitialized()
     const { id: idParam } = await params
-    const id = parseInt(idParam)
+    
+    // Validation de l'ID
+    if (!isValidId(idParam)) {
+      return NextResponse.json(
+        { error: 'ID de transaction invalide' },
+        { status: 400 }
+      )
+    }
+
+    const id = parseInt(idParam, 10)
     const body = await request.json()
     
-    // Préparer les données à mettre à jour (exclure id et created_at)
-    const { id: _, created_at: __, ...updateData } = body
+    // Validation et sanitization des entrées
+    const validation = validateTransactionInput({
+      type: body.type,
+      category: body.category,
+      description: body.description,
+      amount: body.amount,
+      currency: body.currency,
+      date: body.date,
+      income_source: body.income_source,
+    })
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        { error: 'Données invalides', details: validation.errors },
+        { status: 400 }
+      )
+    }
     
-    const updatedTransaction = await updateTransaction(id, updateData)
+    // Utiliser les données validées et sanitizées
+    const updatedTransaction = await updateTransaction(id, validation.sanitized!)
     
     return NextResponse.json({ success: true, transaction: updatedTransaction })
   } catch (error: any) {
@@ -46,9 +79,24 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Vérifier l'authentification
+    const authResult = await requireAuth(request)
+    if (!authResult.authenticated) {
+      return authResult.response
+    }
+
     await ensureDbInitialized()
     const { id: idParam } = await params
-    const id = parseInt(idParam)
+    
+    // Validation de l'ID
+    if (!isValidId(idParam)) {
+      return NextResponse.json(
+        { error: 'ID de transaction invalide' },
+        { status: 400 }
+      )
+    }
+
+    const id = parseInt(idParam, 10)
     
     const deleted = await deleteTransaction(id)
     

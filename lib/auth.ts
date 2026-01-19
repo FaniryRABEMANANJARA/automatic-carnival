@@ -2,7 +2,14 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { getPool } from './db-postgres-pg'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+// JWT_SECRET doit être défini dans les variables d'environnement
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET || JWT_SECRET === 'your-secret-key-change-in-production') {
+  throw new Error('JWT_SECRET doit être défini dans les variables d\'environnement pour des raisons de sécurité')
+}
+
+// TypeScript assertion : JWT_SECRET est maintenant garanti d'être défini
+const JWT_SECRET_FINAL: string = JWT_SECRET
 const JWT_EXPIRES_IN = '7d'
 
 export interface User {
@@ -83,7 +90,7 @@ export async function verifyUser(email: string, password: string): Promise<User 
 export function generateToken(user: User): string {
   return jwt.sign(
     { id: user.id, email: user.email },
-    JWT_SECRET,
+    JWT_SECRET_FINAL,
     { expiresIn: JWT_EXPIRES_IN }
   )
 }
@@ -91,7 +98,7 @@ export function generateToken(user: User): string {
 // Vérifier un token JWT
 export function verifyToken(token: string): { id: number; email: string } | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string }
+    const decoded = jwt.verify(token, JWT_SECRET_FINAL) as { id: number; email: string }
     return decoded
   } catch (error) {
     return null

@@ -1,11 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyUser, generateToken } from '@/lib/auth'
 import { initDatabase } from '@/lib/db-postgres-pg'
+import { checkRateLimit, getRateLimitKey, loginRateLimitOptions } from '@/lib/rate-limit'
+import { isValidEmail } from '@/lib/security'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting pour les tentatives de connexion
+    const rateLimitKey = getRateLimitKey(request, 'login')
+    const rateLimitResult = checkRateLimit(rateLimitKey, loginRateLimitOptions)
+    
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: `Trop de tentatives de connexion. Réessayez dans ${rateLimitResult.retryAfter} secondes.` },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': rateLimitResult.retryAfter.toString(),
+          },
+        }
+      )
+    }
     // Initialiser la base de données avec gestion d'erreur
     try {
       await initDatabase()
@@ -22,6 +39,22 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email et mot de passe sont requis' },
+        { status: 400 }
+      )
+    }
+
+    // Validation de l'email
+    if (typeof email !== 'string' || !isValidEmail(email)) {
+      return NextResponse.json(
+        { error: 'Format d\'email invalide' },
+        { status: 400 }
+      )
+    }
+
+    // Validation du mot de passe
+    if (typeof password !== 'string' || password.length < 6 || password.length > 128) {
+      return NextResponse.json(
+        { error: 'Mot de passe invalide' },
         { status: 400 }
       )
     }

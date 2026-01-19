@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createUser, generateToken } from '@/lib/auth'
 import { initDatabase } from '@/lib/db-postgres-pg'
+import { checkRateLimit, getRateLimitKey, registerRateLimitOptions } from '@/lib/rate-limit'
+import { isValidEmail, isValidPassword, sanitizeString } from '@/lib/security'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting pour les inscriptions
+    const rateLimitKey = getRateLimitKey(request, 'register')
+    const rateLimitResult = checkRateLimit(rateLimitKey, registerRateLimitOptions)
+    
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: `Trop de tentatives d'inscription. Réessayez dans ${rateLimitResult.retryAfter} secondes.` },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': rateLimitResult.retryAfter.toString(),
+          },
+        }
+      )
+    }
+
     await initDatabase()
     
     const body = await request.json()
@@ -18,14 +36,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (password.length < 6) {
+    // Validation de l'email
+    if (typeof email !== 'string' || !isValidEmail(email)) {
       return NextResponse.json(
-        { error: 'Le mot de passe doit contenir au moins 6 caractères' },
+        { error: 'Format d\'email invalide' },
         { status: 400 }
       )
     }
 
-    const user = await createUser(email, password, name)
+    // Validation du mot de passe (plus stricte)
+    if (typeof password !== 'string' || !isValidPassword(password)) {
+      return NextResponse.json(
+        { error: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre' },
+        { status: 400 }
+      )
+    }
+
+    // Sanitization du nom si fourni
+    const sanitizedName = name ? sanitizeString(name, 100) : undefined
+
+    const user = await createUser(email, password, sanitizedName)
     const token = generateToken(user)
 
     const response = NextResponse.json({
