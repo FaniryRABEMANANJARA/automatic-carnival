@@ -30,6 +30,7 @@ import {
   CalendarToday as CalendarIcon,
 } from '@mui/icons-material'
 import DashboardLayout from '@/components/DashboardLayout'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import AlertDialog from '@/components/AlertDialog'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -228,8 +229,9 @@ export default function ExpensesPage() {
     }, {} as Record<string, number>)
 
   return (
-    <DashboardLayout>
-      <Box>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <Box>
         <Toolbar sx={{ mb: 3, px: 0 }}>
           <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1 }}>
             Dépenses
@@ -325,12 +327,14 @@ export default function ExpensesPage() {
                             </Box>
                           }
                           secondary={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                            <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
                               <CalendarIcon sx={{ fontSize: 14 }} />
-                              {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                              <Typography component="span" variant="caption" color="text.secondary">
+                                {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                              </Typography>
                               {transaction.income_source && (
                                 <>
-                                  <Typography variant="caption" color="text.secondary">•</Typography>
+                                  <Typography component="span" variant="caption" color="text.secondary">•</Typography>
                                   <Chip 
                                     label={`Source: ${transaction.income_source}`} 
                                     size="small" 
@@ -615,6 +619,7 @@ export default function ExpensesPage() {
           showCancel={alertDialog.showCancel}
         />
       </Box>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   )
 }

@@ -6,9 +6,7 @@ const nextConfig = {
     DATABASE_PATH: process.env.DATABASE_PATH || './data/budget.json',
   },
   // Configuration pour le middleware Edge Runtime
-  experimental: {
-    serverComponentsExternalPackages: ['pg', 'bcryptjs'],
-  },
+  serverExternalPackages: ['pg', 'bcryptjs'],
 }
 
 module.exports = nextConfig

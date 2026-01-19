@@ -45,10 +45,10 @@ export default function RegisterPage() {
 
     try {
       await register(email, password, name || undefined)
-      // Attendre un peu plus longtemps pour que le cookie soit défini et propagé
-      await new Promise(resolve => setTimeout(resolve, 300))
+      // Attendre suffisamment longtemps pour que le cookie soit défini et propagé
+      await new Promise(resolve => setTimeout(resolve, 800))
       // Utiliser window.location pour forcer une redirection complète vers le dashboard
-      window.location.href = '/'
+      window.location.href = '/dashboard'
     } catch (err: any) {
       setError(err.message || 'Erreur lors de l\'inscription')
       setLoading(false)

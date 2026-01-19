@@ -18,8 +18,8 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Routes publiques (pas besoin d'authentification)
-  const publicRoutes = ['/login', '/register', '/api/auth']
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+  const publicRoutes = ['/login', '/register', '/api/auth', '/']
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route))
 
   // Si c'est une route publique, laisser passer
   if (isPublicRoute) {
@@ -27,13 +27,18 @@ export function middleware(request: NextRequest) {
   }
 
   // Si pas de token et route protégée, rediriger vers login
-  if (!token) {
+  // Ne pas rediriger si on est déjà sur / (page d'accueil qui redirige elle-même)
+  if (!token && pathname !== '/') {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Vérifier le token
+  // Vérifier le token (seulement si présent)
+  if (!token) {
+    return NextResponse.next()
+  }
+  
   const decoded = verifyToken(token)
   
   if (!decoded) {

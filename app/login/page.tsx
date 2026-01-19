@@ -25,15 +25,22 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   useEffect(() => {
-    // Si l'utilisateur est déjà connecté, rediriger vers le dashboard
-    if (user && !authLoading) {
-      const redirect = searchParams.get('redirect') || '/'
-      // Utiliser window.location pour forcer une redirection complète
-      window.location.href = redirect
+    // Si l'utilisateur est déjà connecté et qu'on n'est pas en train de se connecter
+    // Rediriger vers le dashboard seulement si on n'est pas en train de se connecter
+    if (user && !authLoading && !loading && !isRedirecting) {
+      // Vérifier qu'on n'est pas en train de se connecter
+      // En vérifiant si l'email et password sont vides (pas de connexion en cours)
+      if (email === '' && password === '') {
+        const redirect = searchParams.get('redirect') || '/dashboard'
+        setIsRedirecting(true)
+        // Utiliser window.location pour forcer une redirection complète
+        window.location.href = redirect
+      }
     }
-  }, [user, authLoading, searchParams])
+  }, [user, authLoading, loading, searchParams, email, password, isRedirecting])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,14 +49,25 @@ function LoginForm() {
 
     try {
       await login(email, password)
-      // Attendre un peu plus longtemps pour que le cookie soit défini et propagé
-      await new Promise(resolve => setTimeout(resolve, 300))
-      const redirect = searchParams.get('redirect') || '/'
+      
+      // Marquer qu'on est en train de rediriger pour éviter les conflits
+      setIsRedirecting(true)
+      
+      // Attendre suffisamment longtemps pour que le cookie soit défini et propagé
+      // Le cookie doit être disponible avant la redirection
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+          // Vérifier que l'utilisateur est bien défini avant de rediriger
+          const redirect = searchParams.get('redirect') || '/dashboard'
+      
       // Utiliser window.location pour forcer une redirection complète vers le dashboard
+      // Cela garantit que le cookie est bien envoyé avec la requête
+      console.log('Redirection vers:', redirect)
       window.location.href = redirect
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la connexion')
       setLoading(false)
+      setIsRedirecting(false)
     }
   }
 
@@ -182,16 +200,14 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-        }}
-      >
-        <CircularProgress />
-      </Box>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+      }}>
+        <div>Chargement...</div>
+      </div>
     }>
       <LoginForm />
     </Suspense>

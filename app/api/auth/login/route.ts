@@ -6,7 +6,15 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    await initDatabase()
+    // Initialiser la base de données avec gestion d'erreur
+    try {
+      await initDatabase()
+    } catch (error: any) {
+      // Si l'initialisation échoue, réessayer une fois
+      console.log('Retry initDatabase...')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      await initDatabase()
+    }
     
     const body = await request.json()
     const { email, password } = body
@@ -45,6 +53,7 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 jours
       path: '/',
+      domain: undefined, // Laisser le navigateur gérer le domaine
     })
 
     return response

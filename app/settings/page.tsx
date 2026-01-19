@@ -28,6 +28,7 @@ import {
   ArrowDropDown as ArrowDropDownIcon,
 } from '@mui/icons-material'
 import DashboardLayout from '@/components/DashboardLayout'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import AlertDialog from '@/components/AlertDialog'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -259,8 +260,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <DashboardLayout>
-      <Box>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <Box>
         <Toolbar sx={{ mb: 3, px: 0 }}>
           <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1 }}>
             Paramètres
@@ -465,6 +467,7 @@ export default function SettingsPage() {
           showCancel={alertDialog.showCancel}
         />
       </Box>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   )
 }

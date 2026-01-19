@@ -22,6 +22,10 @@ import {
   Category as CategoryIcon,
   Settings as SettingsIcon,
   Assessment as AssessmentIcon,
+  AccountBalance as BudgetIcon,
+  Repeat as RepeatIcon,
+  Savings as SavingsIcon,
+  Notifications as NotificationsIcon,
 } from '@mui/icons-material'
 
 const drawerWidth = 240
@@ -32,11 +36,15 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Transactions', icon: <WalletIcon />, path: '/transactions' },
   { text: 'Revenus', icon: <TrendingUpIcon />, path: '/income' },
   { text: 'Dépenses', icon: <TrendingDownIcon />, path: '/expenses' },
   { text: 'Catégories', icon: <CategoryIcon />, path: '/categories' },
+  { text: 'Budgets', icon: <BudgetIcon />, path: '/budgets' },
+  { text: 'Charges fixes', icon: <RepeatIcon />, path: '/recurring' },
+  { text: 'Objectifs', icon: <SavingsIcon />, path: '/goals' },
+  { text: 'Alertes', icon: <NotificationsIcon />, path: '/alerts' },
   { text: 'Rapports', icon: <AssessmentIcon />, path: '/reports' },
   { text: 'Paramètres', icon: <SettingsIcon />, path: '/settings' },
 ]

@@ -30,6 +30,7 @@ import {
   CalendarToday as CalendarIcon,
 } from '@mui/icons-material'
 import DashboardLayout from '@/components/DashboardLayout'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import AlertDialog from '@/components/AlertDialog'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -201,7 +202,8 @@ export default function IncomePage() {
   }, {} as Record<string, number>)
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
       <Box>
         <Toolbar sx={{ mb: 3, px: 0 }}>
           <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1 }}>
@@ -524,5 +526,6 @@ export default function IncomePage() {
         />
       </Box>
     </DashboardLayout>
+    </ProtectedRoute>
   )
 }
