@@ -10,6 +10,11 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Gestion Budgétaire Mensuelle',
   description: 'Application de gestion budgétaire mensuelle',
+  icons: {
+    icon: '/assets/favicon.ico',
+    shortcut: '/assets/favicon.ico',
+    apple: '/assets/favicon.ico',
+  },
 }
 
 export default function RootLayout({
@@ -20,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/assets/favicon.ico" />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
