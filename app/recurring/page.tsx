@@ -26,6 +26,9 @@ import {
   FormControl,
   InputLabel,
   Select,
+  useMediaQuery,
+  useTheme,
+  Fab,
 } from '@mui/material'
 import {
   Add as AddIcon,
@@ -62,6 +65,8 @@ interface Category {
 }
 
 export default function RecurringPage() {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const { formatCurrency, currency: mainCurrency } = useCurrency()
   const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -310,27 +315,49 @@ export default function RecurringPage() {
     <ProtectedRoute>
       <DashboardLayout>
         <Box>
-          <Toolbar sx={{ mb: 3, px: 0 }}>
-            <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1 }}>
+          <Toolbar sx={{ mb: 3, px: 0, flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 0 }, alignItems: { xs: 'stretch', sm: 'center' } }}>
+            <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
               Charges fixes mensuelles
             </Typography>
-            <Button
-              variant="outlined"
-              startIcon={<RepeatIcon />}
-              onClick={handleGenerate}
-              sx={{ mr: 2, borderRadius: 2 }}
-            >
-              Générer ce mois
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog()}
-              sx={{ borderRadius: 2 }}
-            >
-              Nouvelle charge fixe
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, width: { xs: '100%', sm: 'auto' }, flexDirection: { xs: 'column', sm: 'row' } }}>
+              {!isMobile && (
+                <>
+                  <Button
+                    variant="outlined"
+                    startIcon={<RepeatIcon />}
+                    onClick={handleGenerate}
+                    sx={{ borderRadius: 2 }}
+                    fullWidth={isMobile}
+                  >
+                    Générer ce mois
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => handleOpenDialog()}
+                    sx={{ borderRadius: 2 }}
+                    fullWidth={isMobile}
+                  >
+                    Nouvelle charge fixe
+                  </Button>
+                </>
+              )}
+            </Box>
           </Toolbar>
+          
+          {isMobile && (
+            <Box sx={{ display: 'flex', gap: 2, mb: 3, flexDirection: 'column' }}>
+              <Button
+                variant="outlined"
+                startIcon={<RepeatIcon />}
+                onClick={handleGenerate}
+                sx={{ borderRadius: 2 }}
+                fullWidth
+              >
+                Générer ce mois
+              </Button>
+            </Box>
+          )}
 
           {recurringTransactions.length === 0 ? (
             <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
@@ -352,7 +379,7 @@ export default function RecurringPage() {
           ) : (
             <>
               {activeRecurring.length > 0 && (
-                <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
+                <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, mb: 3 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                     Charges fixes actives
                   </Typography>
@@ -404,28 +431,28 @@ export default function RecurringPage() {
                               }
                             />
                             <ListItemSecondaryAction>
-                              <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Box sx={{ display: 'flex', gap: { xs: 0.5, sm: 1 }, flexDirection: { xs: 'column', sm: 'row' } }}>
                                 <IconButton
                                   size="small"
                                   onClick={() => handleToggleActive(recurring.id, recurring.is_active)}
                                   color="primary"
                                   title="Désactiver"
                                 >
-                                  <PauseIcon />
+                                  <PauseIcon fontSize={isMobile ? 'small' : 'medium'} />
                                 </IconButton>
                                 <IconButton
                                   size="small"
                                   onClick={() => handleOpenDialog(recurring)}
                                   color="primary"
                                 >
-                                  <EditIcon />
+                                  <EditIcon fontSize={isMobile ? 'small' : 'medium'} />
                                 </IconButton>
                                 <IconButton
                                   size="small"
                                   onClick={() => handleDelete(recurring.id)}
                                   color="error"
                                 >
-                                  <DeleteIcon />
+                                  <DeleteIcon fontSize={isMobile ? 'small' : 'medium'} />
                                 </IconButton>
                               </Box>
                             </ListItemSecondaryAction>
@@ -439,7 +466,7 @@ export default function RecurringPage() {
               )}
 
               {inactiveRecurring.length > 0 && (
-                <Paper sx={{ p: 3, borderRadius: 2 }}>
+                <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                     Charges fixes inactives
                   </Typography>
@@ -483,28 +510,28 @@ export default function RecurringPage() {
                               }
                             />
                             <ListItemSecondaryAction>
-                              <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Box sx={{ display: 'flex', gap: { xs: 0.5, sm: 1 }, flexDirection: { xs: 'column', sm: 'row' } }}>
                                 <IconButton
                                   size="small"
                                   onClick={() => handleToggleActive(recurring.id, recurring.is_active)}
                                   color="success"
                                   title="Activer"
                                 >
-                                  <PlayIcon />
+                                  <PlayIcon fontSize={isMobile ? 'small' : 'medium'} />
                                 </IconButton>
                                 <IconButton
                                   size="small"
                                   onClick={() => handleOpenDialog(recurring)}
                                   color="primary"
                                 >
-                                  <EditIcon />
+                                  <EditIcon fontSize={isMobile ? 'small' : 'medium'} />
                                 </IconButton>
                                 <IconButton
                                   size="small"
                                   onClick={() => handleDelete(recurring.id)}
                                   color="error"
                                 >
-                                  <DeleteIcon />
+                                  <DeleteIcon fontSize={isMobile ? 'small' : 'medium'} />
                                 </IconButton>
                               </Box>
                             </ListItemSecondaryAction>
@@ -519,7 +546,13 @@ export default function RecurringPage() {
             </>
           )}
 
-          <Dialog open={dialog} onClose={() => setDialog(false)} maxWidth="sm" fullWidth>
+          <Dialog 
+            open={dialog} 
+            onClose={() => setDialog(false)} 
+            maxWidth="sm" 
+            fullWidth
+            fullScreen={isMobile}
+          >
             <form onSubmit={handleSubmit}>
               <DialogTitle>
                 {editingRecurring ? 'Modifier la charge fixe' : 'Nouvelle charge fixe'}
@@ -560,7 +593,7 @@ export default function RecurringPage() {
                   margin="normal"
                   placeholder="Ex: Loyer, Salaire, Abonnement..."
                 />
-                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                   <TextField
                     label="Montant"
                     type="number"
@@ -577,7 +610,7 @@ export default function RecurringPage() {
                     value={formData.currency}
                     onChange={(e) => setFormData({ ...formData, currency: e.target.value as Currency })}
                     margin="normal"
-                    sx={{ minWidth: 120 }}
+                    sx={{ minWidth: { xs: '100%', sm: 120 } }}
                   >
                     <MenuItem value="MGA">MGA</MenuItem>
                     <MenuItem value="RMB">RMB</MenuItem>
@@ -628,6 +661,23 @@ export default function RecurringPage() {
               </DialogActions>
             </form>
           </Dialog>
+
+          {/* Bouton flottant pour mobile */}
+          {isMobile && (
+            <Fab
+              color="primary"
+              aria-label="add"
+              onClick={() => handleOpenDialog()}
+              sx={{
+                position: 'fixed',
+                bottom: 16,
+                right: 16,
+                zIndex: 1000,
+              }}
+            >
+              <AddIcon />
+            </Fab>
+          )}
 
           <AlertDialog
             open={alertDialog.open}

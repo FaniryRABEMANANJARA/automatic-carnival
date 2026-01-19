@@ -57,10 +57,27 @@ export function useNotifications() {
   }, [])
 
   const enableNotifications = useCallback(async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return false
+    }
+    
+    // Si la permission est déjà refusée, ne pas demander à nouveau
+    if (Notification.permission === 'denied') {
+      setPermission('denied')
+      setEnabled(false)
+      localStorage.setItem('notificationsEnabled', 'false')
+      return false
+    }
+    
     const granted = await requestPermission()
     if (granted) {
       setEnabled(true)
       localStorage.setItem('notificationsEnabled', 'true')
+    } else {
+      // Mettre à jour la permission même si refusée
+      setPermission(Notification.permission)
+      setEnabled(false)
+      localStorage.setItem('notificationsEnabled', 'false')
     }
     return granted
   }, [requestPermission])

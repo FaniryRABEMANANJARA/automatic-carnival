@@ -24,6 +24,11 @@ import {
   InputAdornment,
   Pagination,
   Switch,
+  Card,
+  CardContent,
+  useMediaQuery,
+  useTheme,
+  Fab,
 } from '@mui/material'
 import {
   Add as AddIcon,
@@ -60,6 +65,8 @@ interface Category {
 }
 
 export default function TransactionsPage() {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const { formatCurrency, currency: mainCurrency } = useCurrency()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -70,7 +77,7 @@ export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all')
   const [page, setPage] = useState(1)
-  const rowsPerPage = 10
+  const rowsPerPage = isMobile ? 5 : 10
   const [alertDialog, setAlertDialog] = useState({
     open: false,
     title: '',
@@ -329,22 +336,24 @@ export default function TransactionsPage() {
     <ProtectedRoute>
       <DashboardLayout>
         <Box>
-        <Toolbar sx={{ mb: 3, px: 0 }}>
-          <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1 }}>
+        <Toolbar sx={{ mb: 3, px: 0, flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 0 }, alignItems: { xs: 'stretch', sm: 'center' } }}>
+          <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
             Transactions
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{ borderRadius: 2 }}
-          >
-            Nouvelle transaction
-          </Button>
+          {!isMobile && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+              sx={{ borderRadius: 2 }}
+            >
+              Nouvelle transaction
+            </Button>
+          )}
         </Toolbar>
 
-        <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
             <TextField
               placeholder="Rechercher..."
               value={searchTerm}
@@ -356,14 +365,16 @@ export default function TransactionsPage() {
                   </InputAdornment>
                 ),
               }}
-              sx={{ flexGrow: 1, minWidth: 200 }}
+              sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 200 } }}
+              size={isMobile ? 'small' : 'medium'}
             />
             <TextField
               select
               label="Filtrer par type"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as any)}
-              sx={{ minWidth: 150 }}
+              sx={{ minWidth: { xs: '100%', sm: 150 } }}
+              size={isMobile ? 'small' : 'medium'}
             >
               <MenuItem value="all">Tous</MenuItem>
               <MenuItem value="income">Revenus</MenuItem>
@@ -372,132 +383,278 @@ export default function TransactionsPage() {
           </Box>
         </Paper>
 
-        <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                  <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Catégorie</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Source revenu</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>Montant</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedTransactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                      <Typography color="text.secondary">
-                        Aucune transaction trouvée
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedTransactions.map((transaction) => (
-                    <TableRow key={transaction.id} hover>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          {new Date(transaction.date).toLocaleDateString('fr-FR')}
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          icon={transaction.type === 'income' ? <ArrowDownIcon /> : <ArrowUpIcon />}
-                          label={transaction.type === 'income' ? 'Revenu' : 'Dépense'}
-                          color={transaction.type === 'income' ? 'success' : 'error'}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={transaction.category} variant="outlined" size="small" />
-                      </TableCell>
-                      <TableCell>{transaction.description || '-'}</TableCell>
-                      <TableCell>
-                        {transaction.type === 'expense' && transaction.income_source ? (
-                          <Chip 
-                            label={transaction.income_source} 
-                            size="small" 
-                            color="success"
-                            variant="outlined"
+        {isMobile ? (
+          // Vue mobile avec cartes
+          <Box>
+            {paginatedTransactions.length === 0 ? (
+              <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+                <Typography color="text.secondary">
+                  Aucune transaction trouvée
+                </Typography>
+              </Paper>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {paginatedTransactions.map((transaction) => (
+                  <Card key={transaction.id} sx={{ borderRadius: 2 }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Box sx={{ flex: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary">
+                              {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            icon={transaction.type === 'income' ? <ArrowDownIcon /> : <ArrowUpIcon />}
+                            label={transaction.type === 'income' ? 'Revenu' : 'Dépense'}
+                            color={transaction.type === 'income' ? 'success' : 'error'}
+                            size="small"
+                            sx={{ mb: 1 }}
                           />
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">-</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            fontWeight: 600,
-                            color: transaction.type === 'income' ? 'success.main' : 'error.main',
-                          }}
-                        >
-                          {transaction.type === 'income' ? '+' : '-'}
-                          {formatCurrency(transaction.amount, (transaction.currency || 'MGA') as Currency)}
+                          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                            {transaction.description || transaction.category}
+                          </Typography>
+                          <Chip 
+                            label={transaction.category} 
+                            variant="outlined" 
+                            size="small"
+                            sx={{ mb: 1 }}
+                          />
+                          {transaction.type === 'expense' && transaction.income_source && (
+                            <Box sx={{ mt: 1 }}>
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                Source:
+                              </Typography>
+                              <Chip 
+                                label={transaction.income_source} 
+                                size="small" 
+                                color="success"
+                                variant="outlined"
+                              />
+                            </Box>
+                          )}
+                        </Box>
+                        <Box sx={{ textAlign: 'right', ml: 2 }}>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              fontWeight: 600,
+                              color: transaction.type === 'income' ? 'success.main' : 'error.main',
+                            }}
+                          >
+                            {transaction.type === 'income' ? '+' : '-'}
+                            {formatCurrency(transaction.amount, (transaction.currency || 'MGA') as Currency)}
+                          </Typography>
                           {transaction.currency !== mainCurrency && (
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            <Typography variant="caption" color="text.secondary">
                               ≈ {formatCurrency(
                                 convertCurrency(
                                   convertToMGA(transaction.amount, transaction.currency || 'MGA'),
                                   'MGA',
                                   mainCurrency
-                                )
+                                ),
+                                mainCurrency
                               )}
                             </Typography>
                           )}
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', pt: 1, borderTop: '1px solid #e0e0e0' }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenRecurringDialog(transaction)}
+                          color="secondary"
+                          title="Ajouter aux charges fixes"
+                        >
+                          <RepeatIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenDialog(transaction)}
+                          color="primary"
+                          title="Modifier"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDelete(transaction.id)}
+                          color="error"
+                          title="Supprimer"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            )}
+            {totalPages > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(_, value) => setPage(value)}
+                  color="primary"
+                  size="small"
+                />
+              </Box>
+            )}
+          </Box>
+        ) : (
+          // Vue desktop avec table
+          <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Catégorie</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Source revenu</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>Montant</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                        <Typography color="text.secondary">
+                          Aucune transaction trouvée
                         </Typography>
                       </TableCell>
-                      <TableCell align="right">
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenRecurringDialog(transaction)}
-                            color="secondary"
-                            title="Ajouter aux charges fixes"
-                          >
-                            <RepeatIcon />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenDialog(transaction)}
-                            color="primary"
-                            title="Modifier"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDelete(transaction.id)}
-                            color="error"
-                            title="Supprimer"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {totalPages > 1 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
-              />
-            </Box>
-          )}
-        </Paper>
+                  ) : (
+                    paginatedTransactions.map((transaction) => (
+                      <TableRow key={transaction.id} hover>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            icon={transaction.type === 'income' ? <ArrowDownIcon /> : <ArrowUpIcon />}
+                            label={transaction.type === 'income' ? 'Revenu' : 'Dépense'}
+                            color={transaction.type === 'income' ? 'success' : 'error'}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip label={transaction.category} variant="outlined" size="small" />
+                        </TableCell>
+                        <TableCell>{transaction.description || '-'}</TableCell>
+                        <TableCell>
+                          {transaction.type === 'expense' && transaction.income_source ? (
+                            <Chip 
+                              label={transaction.income_source} 
+                              size="small" 
+                              color="success"
+                              variant="outlined"
+                            />
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">-</Typography>
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 600,
+                              color: transaction.type === 'income' ? 'success.main' : 'error.main',
+                            }}
+                          >
+                            {transaction.type === 'income' ? '+' : '-'}
+                            {formatCurrency(transaction.amount, (transaction.currency || 'MGA') as Currency)}
+                            {transaction.currency !== mainCurrency && (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                ≈ {formatCurrency(
+                                  convertCurrency(
+                                    convertToMGA(transaction.amount, transaction.currency || 'MGA'),
+                                    'MGA',
+                                    mainCurrency
+                                  )
+                                )}
+                              </Typography>
+                            )}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenRecurringDialog(transaction)}
+                              color="secondary"
+                              title="Ajouter aux charges fixes"
+                            >
+                              <RepeatIcon />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenDialog(transaction)}
+                              color="primary"
+                              title="Modifier"
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDelete(transaction.id)}
+                              color="error"
+                              title="Supprimer"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            {totalPages > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(_, value) => setPage(value)}
+                  color="primary"
+                />
+              </Box>
+            )}
+          </Paper>
+        )}
 
-        <Dialog open={dialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        {/* Bouton flottant pour mobile */}
+        {isMobile && (
+          <Fab
+            color="primary"
+            aria-label="add"
+            onClick={() => handleOpenDialog()}
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+              zIndex: 1000,
+            }}
+          >
+            <AddIcon />
+          </Fab>
+        )}
+
+        <Dialog 
+          open={dialog} 
+          onClose={handleCloseDialog} 
+          maxWidth="sm" 
+          fullWidth
+          fullScreen={isMobile}
+        >
           <form onSubmit={handleSubmit}>
             <DialogTitle>
               {editingTransaction ? 'Modifier la transaction' : 'Nouvelle transaction'}
@@ -547,7 +704,7 @@ export default function TransactionsPage() {
                 margin="normal"
               />
 
-              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <TextField
                   label="Montant"
                   type="number"
@@ -564,7 +721,7 @@ export default function TransactionsPage() {
                   value={formData.currency}
                   onChange={(e) => setFormData({ ...formData, currency: e.target.value as Currency })}
                   margin="normal"
-                  sx={{ minWidth: 120 }}
+                  sx={{ minWidth: { xs: '100%', sm: 120 } }}
                 >
                   <MenuItem value="MGA">MGA</MenuItem>
                   <MenuItem value="RMB">RMB</MenuItem>
@@ -626,7 +783,13 @@ export default function TransactionsPage() {
           </form>
         </Dialog>
 
-        <Dialog open={recurringDialog} onClose={handleCloseRecurringDialog} maxWidth="sm" fullWidth>
+        <Dialog 
+          open={recurringDialog} 
+          onClose={handleCloseRecurringDialog} 
+          maxWidth="sm" 
+          fullWidth
+          fullScreen={isMobile}
+        >
           <form onSubmit={handleCreateRecurring}>
             <DialogTitle>
               Ajouter aux charges fixes mensuelles
@@ -641,7 +804,7 @@ export default function TransactionsPage() {
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
                       {selectedTransactionForRecurring.description || selectedTransactionForRecurring.category}
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
                       <Typography variant="body2" color="text.secondary">
                         Catégorie: {selectedTransactionForRecurring.category}
                       </Typography>

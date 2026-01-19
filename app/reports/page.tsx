@@ -14,6 +14,8 @@ import {
   FormControl,
   InputLabel,
   Chip,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import {
   Assessment as AssessmentIcon,
@@ -34,6 +36,8 @@ declare global {
 }
 
 export default function ReportsPage() {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const { formatCurrency, currency: mainCurrency } = useCurrency()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
@@ -546,12 +550,12 @@ export default function ReportsPage() {
     <ProtectedRoute>
       <DashboardLayout>
         <Box>
-        <Toolbar sx={{ mb: 3, px: 0 }}>
-          <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1 }}>
+        <Toolbar sx={{ mb: 3, px: 0, flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 0 }, alignItems: { xs: 'stretch', sm: 'center' } }}>
+          <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
             Rapports
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
+          <Box sx={{ display: 'flex', gap: 2, width: { xs: '100%', sm: 'auto' }, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 150 } }} fullWidth={isMobile}>
               <InputLabel>Mois</InputLabel>
               <Select
                 value={selectedMonth}
@@ -565,7 +569,7 @@ export default function ReportsPage() {
                 ))}
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 120 } }} fullWidth={isMobile}>
               <InputLabel>Année</InputLabel>
               <Select
                 value={selectedYear}
@@ -591,11 +595,11 @@ export default function ReportsPage() {
                     <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
                       Revenus
                     </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      {formatCurrency(income)}
+                    <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+                      {formatCurrency(income, mainCurrency)}
                     </Typography>
                   </Box>
-                  <TrendingUpIcon sx={{ fontSize: 48, opacity: 0.8 }} />
+                  <TrendingUpIcon sx={{ fontSize: { xs: 36, sm: 48 }, opacity: 0.8 }} />
                 </Box>
               </CardContent>
             </Card>
@@ -608,11 +612,11 @@ export default function ReportsPage() {
                     <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
                       Dépenses
                     </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      {formatCurrency(expenses)}
+                    <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+                      {formatCurrency(expenses, mainCurrency)}
                     </Typography>
                   </Box>
-                  <TrendingDownIcon sx={{ fontSize: 48, opacity: 0.8 }} />
+                  <TrendingDownIcon sx={{ fontSize: { xs: 36, sm: 48 }, opacity: 0.8 }} />
                 </Box>
               </CardContent>
             </Card>
@@ -625,11 +629,11 @@ export default function ReportsPage() {
                     <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
                       Solde
                     </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      {formatCurrency(balance)}
+                    <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+                      {formatCurrency(balance, mainCurrency)}
                     </Typography>
                   </Box>
-                  <AssessmentIcon sx={{ fontSize: 48, opacity: 0.8 }} />
+                  <AssessmentIcon sx={{ fontSize: { xs: 36, sm: 48 }, opacity: 0.8 }} />
                 </Box>
               </CardContent>
             </Card>
@@ -637,11 +641,11 @@ export default function ReportsPage() {
         </Grid>
 
         {/* Graphique en ligne - Évolution sur 6 mois */}
-        <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, mb: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Évolution des revenus et dépenses (6 derniers mois)
           </Typography>
-          <Box sx={{ height: 300, position: 'relative' }}>
+          <Box sx={{ height: { xs: 250, sm: 300 }, position: 'relative' }}>
             <canvas ref={lineChartRef}></canvas>
           </Box>
         </Paper>
@@ -649,8 +653,8 @@ export default function ReportsPage() {
         <Grid container spacing={3} sx={{ mb: 3 }}>
           {/* Graphique en secteurs - Dépenses */}
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Dépenses par catégorie
               </Typography>
               {Object.keys(expensesByCategory).length === 0 ? (
@@ -658,7 +662,7 @@ export default function ReportsPage() {
                   Aucune dépense pour cette période
                 </Typography>
               ) : (
-                <Box sx={{ height: 300, position: 'relative' }}>
+                <Box sx={{ height: { xs: 250, sm: 300 }, position: 'relative' }}>
                   <canvas ref={pieExpenseChartRef}></canvas>
                 </Box>
               )}
@@ -667,8 +671,8 @@ export default function ReportsPage() {
           
           {/* Graphique en secteurs - Revenus */}
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Revenus par catégorie
               </Typography>
               {Object.keys(incomeByCategory).length === 0 ? (
@@ -676,7 +680,7 @@ export default function ReportsPage() {
                   Aucun revenu pour cette période
                 </Typography>
               ) : (
-                <Box sx={{ height: 300, position: 'relative' }}>
+                <Box sx={{ height: { xs: 250, sm: 300 }, position: 'relative' }}>
                   <canvas ref={pieIncomeChartRef}></canvas>
                 </Box>
               )}
@@ -685,28 +689,28 @@ export default function ReportsPage() {
         </Grid>
 
         {/* Graphique en barres - Comparaison mensuelle */}
-        <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, mb: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Comparaison mensuelle (6 derniers mois)
           </Typography>
-          <Box sx={{ height: 300, position: 'relative' }}>
+          <Box sx={{ height: { xs: 250, sm: 300 }, position: 'relative' }}>
             <canvas ref={barChartRef}></canvas>
           </Box>
         </Paper>
 
         {/* Comparaisons et tendances */}
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
+        <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
           Comparaisons et Tendances
         </Typography>
 
         {/* Comparaison mois actuel vs précédent */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Comparaison Mois Actuel vs Précédent
               </Typography>
-              <Box sx={{ height: 300, position: 'relative' }}>
+              <Box sx={{ height: { xs: 250, sm: 300 }, position: 'relative' }}>
                 <canvas ref={comparisonChartRef}></canvas>
               </Box>
             </Paper>

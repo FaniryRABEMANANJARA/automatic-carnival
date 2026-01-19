@@ -16,6 +16,8 @@ import {
   ListItemSecondaryAction,
   Menu,
   MenuItem,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import {
   Notifications as NotificationsIcon,
@@ -55,6 +57,8 @@ interface Category {
 }
 
 export default function SettingsPage() {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const { enabled, permission, enableNotifications, disableNotifications } = useNotifications()
   const [darkMode, setDarkMode] = useState(false)
   const { currency, setCurrency, formatCurrency } = useCurrency()
@@ -264,14 +268,14 @@ export default function SettingsPage() {
       <DashboardLayout>
         <Box>
         <Toolbar sx={{ mb: 3, px: 0 }}>
-          <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1 }}>
+          <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
             Paramètres
           </Typography>
         </Toolbar>
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <NotificationsIcon color="primary" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -290,15 +294,30 @@ export default function SettingsPage() {
                       onChange={async (e) => {
                         if (e.target.checked) {
                           const granted = await enableNotifications()
-                          if (!granted) {
+                          // Ne pas afficher le dialog si la permission est 'default' (utilisateur a juste fermé la popup)
+                          // Afficher seulement si la permission est explicitement 'denied'
+                          if (!granted && permission === 'denied') {
                             setAlertDialog({
                               open: true,
                               title: 'Permission refusée',
-                              message: 'Les notifications ont été refusées. Veuillez les autoriser dans les paramètres de votre navigateur.',
+                              message: 'Les notifications ont été refusées. Veuillez les autoriser dans les paramètres de votre navigateur. Sur iOS, les notifications du navigateur peuvent ne pas être disponibles.',
                               type: 'warning',
                               onConfirm: undefined,
                               showCancel: false
                             })
+                          } else if (!granted && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+                            // Sur iOS, les notifications peuvent ne pas être supportées
+                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+                            if (isIOS) {
+                              setAlertDialog({
+                                open: true,
+                                title: 'Notifications non disponibles',
+                                message: 'Les notifications du navigateur ne sont pas disponibles sur iOS Safari. Veuillez utiliser un autre navigateur ou activer les notifications via les paramètres iOS.',
+                                type: 'info',
+                                onConfirm: undefined,
+                                showCancel: false
+                              })
+                            }
                           }
                         } else {
                           disableNotifications()
@@ -313,7 +332,7 @@ export default function SettingsPage() {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <PaletteIcon color="primary" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -338,7 +357,7 @@ export default function SettingsPage() {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <LanguageIcon color="primary" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -377,7 +396,7 @@ export default function SettingsPage() {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <BackupIcon color="primary" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -417,7 +436,7 @@ export default function SettingsPage() {
           </Grid>
 
           <Grid item xs={12}>
-            <Paper sx={{ p: 3, borderRadius: 2, border: '1px solid #f44336' }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '1px solid #f44336' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <DeleteIcon color="error" />
                 <Typography variant="h6" sx={{ fontWeight: 600, color: 'error.main' }}>

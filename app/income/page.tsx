@@ -22,6 +22,9 @@ import {
   MenuItem,
   Chip,
   Toolbar,
+  useMediaQuery,
+  useTheme,
+  Fab,
 } from '@mui/material'
 import {
   Add as AddIcon,
@@ -55,6 +58,8 @@ interface Category {
 }
 
 export default function IncomePage() {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const { formatCurrency, currency: mainCurrency } = useCurrency()
   const { notifyTransaction } = useNotifications()
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -205,18 +210,20 @@ export default function IncomePage() {
     <ProtectedRoute>
       <DashboardLayout>
       <Box>
-        <Toolbar sx={{ mb: 3, px: 0 }}>
-          <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1 }}>
+        <Toolbar sx={{ mb: 3, px: 0, flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 0 }, alignItems: { xs: 'stretch', sm: 'center' } }}>
+          <Typography variant="h4" sx={{ fontWeight: 600, flexGrow: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
             Revenus
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setDialog(true)}
-            sx={{ borderRadius: 2 }}
-          >
-            Ajouter un revenu
-          </Button>
+          {!isMobile && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setDialog(true)}
+              sx={{ borderRadius: 2 }}
+            >
+              Ajouter un revenu
+            </Button>
+          )}
         </Toolbar>
 
         <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -228,11 +235,11 @@ export default function IncomePage() {
                     <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
                       Total des revenus
                     </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      {formatCurrency(totalIncome)}
+                    <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+                      {formatCurrency(totalIncome, mainCurrency)}
                     </Typography>
                   </Box>
-                  <TrendingUpIcon sx={{ fontSize: 48, opacity: 0.8 }} />
+                  <TrendingUpIcon sx={{ fontSize: { xs: 36, sm: 48 }, opacity: 0.8 }} />
                 </Box>
               </CardContent>
             </Card>
@@ -255,10 +262,10 @@ export default function IncomePage() {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Revenu moyen
                 </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
                   {transactions.length > 0
-                    ? formatCurrency(totalIncome / transactions.length)
-                    : formatCurrency(0)}
+                    ? formatCurrency(totalIncome / transactions.length, mainCurrency)
+                    : formatCurrency(0, mainCurrency)}
                 </Typography>
               </CardContent>
             </Card>
@@ -319,7 +326,8 @@ export default function IncomePage() {
                                       convertToMGA(transaction.amount, transaction.currency || 'MGA'),
                                       'MGA',
                                       mainCurrency
-                                    )
+                                    ),
+                                    mainCurrency
                                   )}
                                 </Typography>
                               )}
@@ -354,7 +362,7 @@ export default function IncomePage() {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                     <Typography variant="body2">{category}</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {formatCurrency(amount)}
+                            {formatCurrency(amount, mainCurrency)}
                     </Typography>
                   </Box>
                 </Box>
@@ -363,7 +371,13 @@ export default function IncomePage() {
           </Grid>
         </Grid>
 
-        <Dialog open={dialog} onClose={() => setDialog(false)} maxWidth="sm" fullWidth>
+        <Dialog 
+          open={dialog} 
+          onClose={() => setDialog(false)} 
+          maxWidth="sm" 
+          fullWidth
+          fullScreen={isMobile}
+        >
           <form onSubmit={handleSubmit}>
             <DialogTitle>Ajouter un revenu</DialogTitle>
             <DialogContent>
@@ -455,6 +469,7 @@ export default function IncomePage() {
           }}
           maxWidth="sm"
           fullWidth
+          fullScreen={isMobile}
         >
           <DialogTitle>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -514,6 +529,23 @@ export default function IncomePage() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Bouton flottant pour mobile */}
+        {isMobile && (
+          <Fab
+            color="primary"
+            aria-label="add"
+            onClick={() => setDialog(true)}
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+              zIndex: 1000,
+            }}
+          >
+            <AddIcon />
+          </Fab>
+        )}
 
         <AlertDialog
           open={alertDialog.open}

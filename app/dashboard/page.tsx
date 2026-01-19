@@ -145,13 +145,19 @@ export default function DashboardPage() {
   useEffect(() => {
     const income = transactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + convertToMGA(t.amount, t.currency), 0)
+      .reduce((sum, t) => {
+        const amountInMGA = convertToMGA(t.amount, t.currency)
+        return sum + convertCurrency(amountInMGA, 'MGA', mainCurrency)
+      }, 0)
     const expense = transactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + convertToMGA(t.amount, t.currency), 0)
+      .reduce((sum, t) => {
+        const amountInMGA = convertToMGA(t.amount, t.currency)
+        return sum + convertCurrency(amountInMGA, 'MGA', mainCurrency)
+      }, 0)
     setTotalIncome(income)
     setTotalExpense(expense)
-  }, [transactions])
+  }, [transactions, mainCurrency])
 
   useEffect(() => {
     if (transactions.length > 0 && typeof window !== 'undefined' && window.Chart) {
@@ -511,7 +517,7 @@ export default function DashboardPage() {
                         Revenus totaux
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 600, mt: 1 }}>
-                        {formatCurrency(totalIncome)}
+                        {formatCurrency(totalIncome, mainCurrency)}
                       </Typography>
                     </Box>
                     <TrendingUpIcon sx={{ fontSize: 48, opacity: 0.3 }} />
@@ -529,7 +535,7 @@ export default function DashboardPage() {
                         Dépenses totales
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 600, mt: 1 }}>
-                        {formatCurrency(totalExpense)}
+                        {formatCurrency(totalExpense, mainCurrency)}
                       </Typography>
                     </Box>
                     <TrendingDownIcon sx={{ fontSize: 48, opacity: 0.3 }} />
@@ -547,7 +553,7 @@ export default function DashboardPage() {
                         Solde
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 600, mt: 1 }}>
-                        {formatCurrency(balance)}
+                        {formatCurrency(balance, mainCurrency)}
                       </Typography>
                     </Box>
                     <WalletIcon sx={{ fontSize: 48, opacity: 0.3 }} />
@@ -715,11 +721,8 @@ export default function DashboardPage() {
             ) : (
               <List>
                 {recentTransactions.map((transaction) => {
-                  const convertedAmount = convertCurrency(
-                    transaction.amount,
-                    transaction.currency,
-                    mainCurrency
-                  )
+                  const amountInMGA = convertToMGA(transaction.amount, transaction.currency)
+                  const convertedAmount = convertCurrency(amountInMGA, 'MGA', mainCurrency)
                   const isDifferentCurrency = transaction.currency !== mainCurrency
 
                   return (
@@ -781,7 +784,7 @@ export default function DashboardPage() {
                             }}
                           >
                             {transaction.type === 'income' ? '+' : '-'}
-                            {formatCurrency(convertedAmount)}
+                            {formatCurrency(convertedAmount, mainCurrency)}
                           </Typography>
                           {isDifferentCurrency && (
                             <Typography variant="body2" color="text.secondary">
@@ -875,11 +878,15 @@ export default function DashboardPage() {
                   </TextField>
                 </Box>
 
-                {formData.currency !== mainCurrency && (
+                {formData.currency !== mainCurrency && formData.amount && (
                   <Box sx={{ mt: 2, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
                     <Typography variant="body2">
                       Montant converti: {formatCurrency(
-                        convertCurrency(parseFloat(formData.amount) || 0, formData.currency, mainCurrency),
+                        convertCurrency(
+                          convertToMGA(parseFloat(formData.amount) || 0, formData.currency),
+                          'MGA',
+                          mainCurrency
+                        ),
                         mainCurrency
                       )}
                     </Typography>
